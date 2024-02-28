@@ -34,14 +34,14 @@ type Config struct {
 	Password string `url:"pwd"`
 }
 
-// String returns a string representation of the camera name.
+// String returns a string representation of the camera model.
 func (m Model) String() string {
 	return []string{"FI9800P", "FI8919W"}[m]
 }
 
-// New is a camera interface factory
-// We can create a camera by providing its model
-// HTTPCLient is the client used to make requests to the cameras. Default is `http.Client`
+// New is a camera interface factory.
+// Creates a camera by providing its model and configuration.
+// HTTPCLient is the client used to make requests to the cameras. Default is `http.Client`.
 func New(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error) {
 	var c HTTPClient
 
@@ -63,7 +63,7 @@ func New(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error) {
 		return
 	}
 
-	// TODO: Make it generic
+	// Initialize the camera
 	switch m.String() {
 	case "FI9800P":
 		cam = &fi9800p{
@@ -76,7 +76,6 @@ func New(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error) {
 			Config: cfg,
 		}
 	default:
-		// We already do this check at the function beginning, but just to be sure
 		err = fmt.Errorf("invalid camera model: %s", m.String())
 	}
 	return
