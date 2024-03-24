@@ -50,33 +50,7 @@ type fi9800pResponse struct {
 	Result  int      `xml:"result"`
 }
 
-// Get motion detection config
-func (c *fi9800p) GetMotionDetect() (fi9800pMotion, error) {
-	var mc fi9800pMotion
-
-	// Construct the URL
-	q, _ := query.Values(c)
-	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=getMotionDetectConfig&%s", c.URL, q.Encode())
-
-	res, err := c.Client.Get(url)
-	if err != nil {
-		return mc, err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		// NOTE: Try to print the camera model in the messages
-		return mc, fmt.Errorf("unexpected response status from camera: %d", res.StatusCode)
-	}
-
-	b, _ := io.ReadAll(res.Body)
-	if err = xml.Unmarshal(b, &mc); err != nil {
-		return mc, err
-	}
-
-	return mc, nil
-}
-
-// Update the motion detection config
+// updateMotionDetect updates the motion detection configuration.
 func (c *fi9800p) updateMotionDetect(mc fi9800pMotion) error {
 	// Construct the URL
 	qc, _ := query.Values(c)  // Credentials
@@ -85,11 +59,11 @@ func (c *fi9800p) updateMotionDetect(mc fi9800pMotion) error {
 
 	res, err := c.Client.Get(url)
 	if err != nil {
-		return err
+		return &CameraError{err.Error()}
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected response status from camera: %d", res.StatusCode)
+		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
 	}
 
 	b, _ := io.ReadAll(res.Body)
@@ -101,13 +75,38 @@ func (c *fi9800p) updateMotionDetect(mc fi9800pMotion) error {
 	}
 
 	if mr.Result != 0 {
-		return fmt.Errorf("invalid response. Expected is 0")
+		return &BadResponseError{Want: 0, Got: mr.Result}
 	}
 
 	return nil
 }
 
-// Change motion status to the value provided by enable
+// GetMotionDetect retrieves the motion detection configuration.
+func (c *fi9800p) GetMotionDetect() (fi9800pMotion, error) {
+	var mc fi9800pMotion
+
+	// Construct the URL
+	q, _ := query.Values(c)
+	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=getMotionDetectConfig&%s", c.URL, q.Encode())
+
+	res, err := c.Client.Get(url)
+	if err != nil {
+		return mc, &CameraError{err.Error()}
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return mc, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
+	}
+
+	b, _ := io.ReadAll(res.Body)
+	if err = xml.Unmarshal(b, &mc); err != nil {
+		return mc, err
+	}
+
+	return mc, nil
+}
+
+// ChangeMotionStatus enables/disables the camera motion detection.
 func (c *fi9800p) ChangeMotionStatus(enable bool) error {
 
 	mc, err := c.GetMotionDetect()

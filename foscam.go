@@ -1,9 +1,6 @@
 package foscam
 
 import (
-	"crypto/tls"
-	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -15,6 +12,21 @@ const (
 	FI9800P Model = iota
 	FI8919W
 )
+
+// modelNames maps each camera model constant to its string representation.
+var modelNames = map[Model]string{
+	FI9800P: "FI9800P",
+	FI8919W: "FI8919W",
+}
+
+// String returns the string representation of the camera model.
+func (m Model) String() string {
+	if name, ok := modelNames[m]; ok {
+		return name
+	}
+	// Fallback for any undefined models
+	return "invalid model"
+}
 
 // Camera is the common interface implemented by all camera models.
 type Camera interface {
@@ -34,33 +46,16 @@ type Config struct {
 	Password string `url:"pwd"`
 }
 
-// String returns a string representation of the camera model.
-func (m Model) String() string {
-	return []string{"FI9800P", "FI8919W"}[m]
-}
-
-// New is a camera interface factory.
+// NewCamera is a camera interface factory.
 // Creates a camera by providing its model and configuration.
 // HTTPCLient is the client used to make requests to the cameras. Default is `http.Client`.
-func New(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error) {
+func NewCamera(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error) {
 	var c HTTPClient
 
 	if len(client) == 0 {
-		// Skip SSL verification
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true}
 		c = &http.Client{}
 	} else {
 		c = client[0]
-	}
-
-	// Check if camera is accessible
-	res, err := c.Get(cfg.URL)
-	if err == nil && res.StatusCode != http.StatusOK {
-		err = errors.New("expected HTTP status = 200 OK")
-	}
-	if err != nil {
-		return
 	}
 
 	// Initialize the camera
@@ -76,7 +71,7 @@ func New(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error) {
 			Config: cfg,
 		}
 	default:
-		err = fmt.Errorf("invalid camera model: %s", m.String())
+		err = ErrCameraInvalidModel
 	}
 	return
 }

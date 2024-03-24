@@ -46,7 +46,7 @@ vendor:
 ## coverage: check code coverage (generates coverage.out)
 .PHONY: coverage
 coverage:
-	go test -coverprofile=coverage.out -covermode=count
+	go test -coverprofile=coverage.out -covermode=set
 
 ## coverage-html: check code coverage and generate HTML report
 .PHONY: coverage-html

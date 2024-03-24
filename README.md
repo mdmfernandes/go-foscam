@@ -23,14 +23,13 @@ export FOSCAM_USER=<user>
 export FOSCAM_PASSWORD=<password>
 EOF
 
-make run/example
+$ make run/example
 ```
 
 ## To Do
 
-- [ ] `staticcheck` *vs.* `golangci-lint` - to replace `go vet`
+- [ ] `staticcheck` _vs._ `golangci-lint` - to replace `go vet`
 - [ ] Run audit and coverage in CI
-- [ ] Add unit tests for current cameras
 - [ ] Add more Functionalities
 - [ ] Support more cameras
 - [ ] Complete TODOs from code
