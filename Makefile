@@ -24,13 +24,17 @@ run/example:
 # QUALITY CONTROL
 # ============================================================================ #
 
+## lint: run Go linters (golangci-lint)
+.PHONY: lint
+lint: ## Runs lint
+	@echo 'Linting code...'
+	golangci-lint run
+
 ## audit: tidy dependencies and format, vet and test all code
 .PHONY: audit
-audit: vendor
+audit: vendor lint
 	@echo 'Formatting code...'
 	go fmt
-	@echo 'Linting code...'
-	go vet
 	@echo 'Running tests...'
 	go test -race -vet=off -v
 
