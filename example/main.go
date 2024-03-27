@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Initialize a camera
-	cam, err := foscam.New(foscam.FI9800P, *c)
+	cam, err := foscam.NewCamera(foscam.FI9800P, *c)
 	if err != nil {
 		panic(err)
 	}
