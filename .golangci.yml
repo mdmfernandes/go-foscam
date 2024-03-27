@@ -1,0 +1,47 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - asciicheck
+    - bodyclose
+    - dogsled
+    - dupl
+    - durationcheck
+    - errcheck
+    - errorlint
+    - exportloopref
+    - gci
+    - ginkgolinter
+    - gochecknoinits
+    - gofmt
+    - goimports
+    - gosec
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - megacheck
+    - misspell
+    - nakedret
+    - nolintlint
+    - revive
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/securego)
+  revive:
+    rules:
+      - name: dot-imports
+        disabled: true
