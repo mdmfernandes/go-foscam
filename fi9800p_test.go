@@ -1,6 +1,7 @@
 package foscam
 
 import (
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"io"
@@ -62,7 +63,7 @@ func TestFI9800p_GetMotionDetect(t *testing.T) {
 				GetFunc: func(url string) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusNotFound,
-						Body:       nil,
+						Body:       io.NopCloser(bytes.NewBufferString("don't care")),
 					}, nil
 				},
 			},
@@ -179,7 +180,7 @@ func TestFI9800p_updateMotionDetect(t *testing.T) {
 				GetFunc: func(url string) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusNotFound,
-						Body:       nil,
+						Body:       io.NopCloser(bytes.NewBufferString("don't care")),
 					}, nil
 				},
 			},
