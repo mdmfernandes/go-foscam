@@ -5,10 +5,8 @@ import (
 	"fmt"
 )
 
-var (
-	// ErrCameraInvalidModel is the error thrown for an invalid camera model.
-	ErrCameraInvalidModel = errors.New("invalid model")
-)
+// ErrCameraInvalidModel is the error thrown for an invalid camera model.
+var ErrCameraInvalidModel = errors.New("invalid model")
 
 // CameraError represents a camera generic error.
 type CameraError struct {

@@ -6,12 +6,6 @@ import (
 	"github.com/mdmfernandes/go-foscam"
 )
 
-type config struct {
-	url      string
-	user     string
-	password string
-}
-
 func main() {
 	// Generate config
 	c := &foscam.Config{

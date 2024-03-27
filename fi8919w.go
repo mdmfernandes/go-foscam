@@ -28,6 +28,7 @@ func (c *fi8919w) ChangeMotionStatus(enable bool) error {
 	if err != nil {
 		return &CameraError{err.Error()}
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
 		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}

@@ -61,6 +61,7 @@ func (c *fi9800p) updateMotionDetect(mc fi9800pMotion) error {
 	if err != nil {
 		return &CameraError{err.Error()}
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
@@ -93,6 +94,7 @@ func (c *fi9800p) GetMotionDetect() (fi9800pMotion, error) {
 	if err != nil {
 		return mc, &CameraError{err.Error()}
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		return mc, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
@@ -108,7 +110,6 @@ func (c *fi9800p) GetMotionDetect() (fi9800pMotion, error) {
 
 // ChangeMotionStatus enables/disables the camera motion detection.
 func (c *fi9800p) ChangeMotionStatus(enable bool) error {
-
 	mc, err := c.GetMotionDetect()
 	if err != nil {
 		return err
