@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mdmfernandes/go-foscam/mocks"
+	"github.com/mdmfernandes/go-foscam/testutil"
 )
 
 func TestModel(t *testing.T) {
@@ -52,7 +53,7 @@ func TestNewCamera(t *testing.T) {
 	}
 
 	// Custom client that always returns 200 OK
-	client_ok := &mocks.MockHTTPClient{
+	clientOk := &mocks.MockHTTPClient{
 		GetFunc: func(url string) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: http.StatusNotAcceptable,
@@ -90,11 +91,11 @@ func TestNewCamera(t *testing.T) {
 			args: args{
 				model:   FI9800P,
 				cfg:     cfg,
-				clients: []HTTPClient{client_ok},
+				clients: []HTTPClient{clientOk},
 			},
 			wantCam: &fi9800p{
 				Config: cfg,
-				Client: client_ok,
+				Client: clientOk,
 			},
 			wantErr: nil,
 		},
@@ -113,7 +114,7 @@ func TestNewCamera(t *testing.T) {
 			// Create a new camera
 			cam, err := NewCamera(tt.args.model, tt.args.cfg, tt.args.clients...)
 
-			if (err != nil) && err != tt.wantErr {
+			if !testutil.EqualError(t, err, tt.wantErr) {
 				t.Errorf("Error: got = %v; want = %v", err, tt.wantErr)
 			}
 
