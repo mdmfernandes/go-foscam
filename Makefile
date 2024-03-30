@@ -1,6 +1,3 @@
-# Include variables from the .envrc file
-include .envrc
-
 # ============================================================================ #
 # HELPERS
 # ============================================================================ #
@@ -36,7 +33,7 @@ audit: vendor lint
 	@echo 'Formatting code...'
 	go fmt
 	@echo 'Running tests...'
-	go test -race -vet=off -v
+	go test -v -race -vet=off
 
 ## vendor: tidy and vendor dependencies
 .PHONY: vendor
@@ -47,10 +44,10 @@ vendor:
 	@echo 'Vendoring dependencies...'
 	go mod vendor
 
-## coverage: check code coverage (generates coverage.out)
-.PHONY: coverage
-coverage:
-	go test -coverprofile=coverage.out -covermode=set
+## test-coverage: test code and check coverage (generates coverage.out)
+.PHONY: test-coverage
+test-coverage:
+	go test -v -race -coverprofile=coverage.out -covermode=atomic
 
 ## coverage-html: check code coverage and generate HTML report
 .PHONY: coverage-html
