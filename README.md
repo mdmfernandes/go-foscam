@@ -1,5 +1,8 @@
 # go-foscam
 
+[![tests](https://github.com/mdmfernandes/go-foscam/actions/workflows/tests.yml/badge.svg)](https://github.com/mdmfernandes/go-foscam/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/mdmfernandes/go-foscam/graph/badge.svg?token=J9CVAXJ6JG)](https://codecov.io/gh/mdmfernandes/go-foscam)
+
 Go Library for Foscam IP Cameras
 
 ## Supported Cameras
@@ -28,8 +31,5 @@ $ make run/example
 
 ## To Do
 
-- [ ] `staticcheck` _vs._ `golangci-lint` - to replace `go vet`
-- [ ] Run audit and coverage in CI
-- [ ] Add more Functionalities
+- [ ] Add more functionalities
 - [ ] Support more cameras
-- [ ] Complete TODOs from code
