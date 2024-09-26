@@ -23,7 +23,7 @@ run/example:
 
 ## lint: run Go linters (golangci-lint)
 .PHONY: lint
-lint: ## Runs lint
+lint:
 	@echo 'Linting code...'
 	golangci-lint run
 
@@ -34,6 +34,12 @@ audit: vendor lint
 	go fmt
 	@echo 'Running tests...'
 	go test -v -race -vet=off
+
+## vulncheck: check for known vulnerabilities
+.PHONY: vulncheck
+vulncheck:
+	@echo 'Checking for vulnerabilities...'
+	govulncheck -show verbose ./...
 
 ## vendor: tidy and vendor dependencies
 .PHONY: vendor
