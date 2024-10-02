@@ -9,13 +9,18 @@ help:
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
 
 # ============================================================================ #
-# DEVELOPMENT
+# EXAMPLES
 # ============================================================================ #
 
-## run/example: run the example application
-.PHONY: run/example
-run/example:
-	go run ./example/main.go
+## example/motion: example to change the camera motion status
+.PHONY: example/motion
+example/motion:
+	go run ./example/motion/change.go
+
+## example/snap: example to snap a picture from the camera
+.PHONY: example/snap
+example/snap:
+	go run ./example/picture/snap.go
 
 # ============================================================================ #
 # QUALITY CONTROL
@@ -57,5 +62,5 @@ test-coverage:
 
 ## coverage-html: check code coverage and generate HTML report
 .PHONY: coverage-html
-coverage-html: coverage
+coverage-html: test-coverage
 	go tool cover -html=coverage.out

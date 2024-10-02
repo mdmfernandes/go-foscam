@@ -1,3 +1,4 @@
+// Change a camera motion status.
 package main
 
 import (
