@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-querystring/query"
 )
@@ -12,8 +13,12 @@ import (
 // We don't need to export this struct since we are using an interface fictory
 // see the file foscam.go for more details
 type fi8919w struct {
-	Client HTTPClient
-	Config
+	Client HTTPClient `url:"-"`
+	// The go-querystring values may change from camera to camera, so we can't
+	// use Config (from foscam.go) directly here.
+	URL      string `url:"-"`
+	User     string `url:"user"`
+	Password string `url:"pwd"`
 }
 
 // ChangeMotionStatus enables/disables the camera motion detection.
@@ -42,4 +47,32 @@ func (c *fi8919w) ChangeMotionStatus(enable bool) error {
 	}
 
 	return nil
+}
+
+func (c *fi8919w) SnapPicture() ([]byte, error) {
+	q, _ := query.Values(c)
+	url := fmt.Sprintf("%s/snapshot.cgi?%s", c.URL, q.Encode())
+
+	res, err := c.Client.Get(url)
+	if err != nil {
+		return nil, &CameraError{err.Error()}
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return nil, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
+	}
+
+	b, _ := io.ReadAll(res.Body)
+
+	// Check that camera returns a JPEG image
+	if mime := http.DetectContentType(b); mime != jpegMime {
+		// If camera returns plain text, show it in the error message
+		if strings.Contains(mime, "text/plain") {
+			mime = string(b)
+		}
+		return nil, &BadResponseError{Want: jpegMime, Got: mime}
+	}
+
+	return b, nil
 }

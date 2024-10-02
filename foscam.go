@@ -30,7 +30,11 @@ func (m Model) String() string {
 
 // Camera is the common interface implemented by all camera models.
 type Camera interface {
+	// Change camera motion status to the provided value.
+	// true: enable, false: disable.
 	ChangeMotionStatus(enable bool) error
+	// Snap a picture from the camera.
+	SnapPicture() ([]byte, error)
 	// GetMotionStatus() error
 }
 
@@ -41,9 +45,9 @@ type HTTPClient interface {
 
 // Config is the camera configuration.
 type Config struct {
-	URL      string `url:"-"`
-	User     string `url:"usr"`
-	Password string `url:"pwd"`
+	URL      string
+	User     string
+	Password string
 }
 
 // NewCamera is a camera interface factory.
@@ -62,13 +66,17 @@ func NewCamera(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error
 	switch m.String() {
 	case "FI9800P":
 		cam = &fi9800p{
-			Client: c,
-			Config: cfg,
+			Client:   c,
+			URL:      cfg.URL,
+			User:     cfg.User,
+			Password: cfg.Password,
 		}
 	case "FI8919W":
 		cam = &fi8919w{
-			Client: c,
-			Config: cfg,
+			Client:   c,
+			URL:      cfg.URL,
+			User:     cfg.User,
+			Password: cfg.Password,
 		}
 	default:
 		err = ErrCameraInvalidModel
