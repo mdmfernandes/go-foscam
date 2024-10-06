@@ -2,8 +2,6 @@ package foscam
 
 import (
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/google/go-querystring/query"
 )
@@ -12,8 +10,12 @@ import (
 // We don't need to export this struct since we are using an interface fictory
 // see the file foscam.go for more details
 type fi8919w struct {
-	Client HTTPClient
-	Config
+	Client HTTPClient `url:"-"`
+	// The go-querystring values may change from camera to camera, so we can't
+	// use Config (from foscam.go) directly here.
+	URL      string `url:"-"`
+	User     string `url:"user"`
+	Password string `url:"pwd"`
 }
 
 // ChangeMotionStatus enables/disables the camera motion detection.
@@ -24,17 +26,11 @@ func (c *fi8919w) ChangeMotionStatus(enable bool) error {
 		q.Encode(),
 		b2u(enable))
 
-	res, err := c.Client.Get(url)
+	b, err := getRequest(c.Client, url)
 	if err != nil {
-		return &CameraError{err.Error()}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
+		return err
 	}
 
-	b, _ := io.ReadAll(res.Body)
 	got := string(b)
 	want := "ok.\n"
 	if got != want {
@@ -42,4 +38,12 @@ func (c *fi8919w) ChangeMotionStatus(enable bool) error {
 	}
 
 	return nil
+}
+
+// SnapPicture takes a snapshot and returns the picture in a byte slice.
+func (c *fi8919w) SnapPicture() ([]byte, error) {
+	q, _ := query.Values(c)
+	url := fmt.Sprintf("%s/snapshot.cgi?%s", c.URL, q.Encode())
+
+	return getSnap(c.Client, url)
 }

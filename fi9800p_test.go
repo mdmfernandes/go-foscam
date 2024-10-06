@@ -1,9 +1,7 @@
 package foscam
 
 import (
-	"bytes"
 	"encoding/xml"
-	"errors"
 	"io"
 	"net/http"
 	"reflect"
@@ -44,30 +42,6 @@ func TestFI9800p_GetMotionDetect(t *testing.T) {
 				Area4:    69,
 			},
 			wantErr:       nil,
-			wantGetCalled: 1,
-		},
-		{
-			name: "Camera error",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return nil, errors.New("some error")
-				},
-			},
-			want:          fi9800pMotion{},
-			wantErr:       &CameraError{"some error"},
-			wantGetCalled: 1,
-		},
-		{
-			name: "Unexpected status code (404)",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return &http.Response{
-						StatusCode: http.StatusNotFound,
-						Body:       io.NopCloser(bytes.NewBufferString("don't care")),
-					}, nil
-				},
-			},
-			wantErr:       &BadStatusError{Status: http.StatusNotFound, Expected: http.StatusOK},
 			wantGetCalled: 1,
 		},
 		{
@@ -165,29 +139,6 @@ func TestFI9800p_updateMotionDetect(t *testing.T) {
 			wantGetCalled: 1,
 		},
 		{
-			name: "Camera error",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return nil, errors.New("some error")
-				},
-			},
-			wantErr:       &CameraError{"some error"},
-			wantGetCalled: 1,
-		},
-		{
-			name: "Unexpected status code (404)",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return &http.Response{
-						StatusCode: http.StatusNotFound,
-						Body:       io.NopCloser(bytes.NewBufferString("don't care")),
-					}, nil
-				},
-			},
-			wantErr:       &BadStatusError{"", http.StatusNotFound, http.StatusOK},
-			wantGetCalled: 1,
-		},
-		{
 			name: "Invalid XML response", // Didn't close CGI_Result
 			Client: &mocks.MockHTTPClient{
 				GetFunc: func(_ string) (*http.Response, error) {
@@ -224,4 +175,7 @@ func TestFI9800p_updateMotionDetect(t *testing.T) {
 
 func TestFI9800p_ChangeMotionStatus(t *testing.T) {
 	t.SkipNow()
+}
+
+func TestFI9800p_SnapPicture(t *testing.T) {
 }

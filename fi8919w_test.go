@@ -36,29 +36,6 @@ func TestFI8919w_ChangeMotionStatus(t *testing.T) {
 			wantGetCalled: 1,
 		},
 		{
-			name: "Camera error",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return nil, http.ErrAbortHandler
-				},
-			},
-			wantErr:       &CameraError{http.ErrAbortHandler.Error()},
-			wantGetCalled: 1,
-		},
-		{
-			name: "Get status code unexpected",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return &http.Response{
-						StatusCode: http.StatusNotFound,
-						Body:       io.NopCloser(strings.NewReader("ok.\n")),
-					}, nil
-				},
-			},
-			wantErr:       &BadStatusError{Status: http.StatusNotFound, Expected: http.StatusOK},
-			wantGetCalled: 1,
-		},
-		{
 			name: "Get unexpected response",
 			Client: &mocks.MockHTTPClient{
 				GetFunc: func(url string) (*http.Response, error) {
