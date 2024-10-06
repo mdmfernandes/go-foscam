@@ -62,6 +62,8 @@ func NewCamera(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error
 		c = client[0]
 	}
 
+	// TODO: validate credentials
+
 	// Initialize the camera
 	switch m.String() {
 	case "FI9800P":
@@ -81,5 +83,5 @@ func NewCamera(m Model, cfg Config, client ...HTTPClient) (cam Camera, err error
 	default:
 		err = ErrCameraInvalidModel
 	}
-	return
+	return cam, err
 }
