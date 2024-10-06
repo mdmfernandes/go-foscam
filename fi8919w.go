@@ -2,9 +2,6 @@ package foscam
 
 import (
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
 
 	"github.com/google/go-querystring/query"
 )
@@ -29,17 +26,11 @@ func (c *fi8919w) ChangeMotionStatus(enable bool) error {
 		q.Encode(),
 		b2u(enable))
 
-	res, err := c.Client.Get(url)
+	b, err := getRequest(c.Client, url)
 	if err != nil {
-		return &CameraError{err.Error()}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
+		return err
 	}
 
-	b, _ := io.ReadAll(res.Body)
 	got := string(b)
 	want := "ok.\n"
 	if got != want {
@@ -49,30 +40,10 @@ func (c *fi8919w) ChangeMotionStatus(enable bool) error {
 	return nil
 }
 
+// SnapPicture takes a snapshot and returns the picture in a byte slice.
 func (c *fi8919w) SnapPicture() ([]byte, error) {
 	q, _ := query.Values(c)
 	url := fmt.Sprintf("%s/snapshot.cgi?%s", c.URL, q.Encode())
 
-	res, err := c.Client.Get(url)
-	if err != nil {
-		return nil, &CameraError{err.Error()}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return nil, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
-	}
-
-	b, _ := io.ReadAll(res.Body)
-
-	// Check that camera returns a JPEG image
-	if mime := http.DetectContentType(b); mime != jpegMime {
-		// If camera returns plain text, show it in the error message
-		if strings.Contains(mime, "text/plain") {
-			mime = string(b)
-		}
-		return nil, &BadResponseError{Want: jpegMime, Got: mime}
-	}
-
-	return b, nil
+	return getSnap(c.Client, url)
 }

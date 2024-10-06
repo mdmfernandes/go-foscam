@@ -37,3 +37,13 @@ type BadResponseError struct {
 func (b *BadResponseError) Error() string {
 	return fmt.Sprintf("Unexpected response. Want: %#v, Got: %#v", b.Want, b.Got)
 }
+
+// BadResponseError represents a bad response from the camera.
+type InvalidMIMETypeError struct {
+	Want any
+	Got  any
+}
+
+func (b *InvalidMIMETypeError) Error() string {
+	return fmt.Sprintf("Invalid MIME type. Want: %#v, Got: %#v", b.Want, b.Got)
+}

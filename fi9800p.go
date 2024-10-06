@@ -3,14 +3,9 @@ package foscam
 import (
 	"encoding/xml"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
 
 	"github.com/google/go-querystring/query"
 )
-
-const jpegMime string = "image/jpeg"
 
 // fi9800p is a camera Foscam FI9800P.
 // We don't need to export this struct since we are using an interface factory.
@@ -64,17 +59,10 @@ func (c *fi9800p) updateMotionDetect(mc fi9800pMotion) error {
 	qm, _ := query.Values(mc) // Motion Config
 	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=setMotionDetectConfig&%s&%s", c.URL, qm.Encode(), qc.Encode())
 
-	res, err := c.Client.Get(url)
+	b, err := getRequest(c.Client, url)
 	if err != nil {
-		return &CameraError{err.Error()}
+		return err
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
-	}
-
-	b, _ := io.ReadAll(res.Body)
 
 	var mr fi9800pResponse
 
@@ -97,17 +85,11 @@ func (c *fi9800p) GetMotionDetect() (fi9800pMotion, error) {
 	q, _ := query.Values(c)
 	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=getMotionDetectConfig&%s", c.URL, q.Encode())
 
-	res, err := c.Client.Get(url)
+	b, err := getRequest(c.Client, url)
 	if err != nil {
-		return mc, &CameraError{err.Error()}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return mc, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
+		return mc, err
 	}
 
-	b, _ := io.ReadAll(res.Body)
 	if err = xml.Unmarshal(b, &mc); err != nil {
 		return mc, err
 	}
@@ -137,26 +119,5 @@ func (c *fi9800p) SnapPicture() ([]byte, error) {
 	q, _ := query.Values(c)
 	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=snapPicture2&%s", c.URL, q.Encode())
 
-	res, err := c.Client.Get(url)
-	if err != nil {
-		return nil, &CameraError{err.Error()}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return nil, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
-	}
-
-	b, _ := io.ReadAll(res.Body)
-
-	// Check that camera returns a JPEG image
-	if mime := http.DetectContentType(b); mime != jpegMime {
-		// If camera returns plain text, show it in the error message
-		if strings.Contains(mime, "text/plain") {
-			mime = string(b)
-		}
-		return nil, &BadResponseError{Want: jpegMime, Got: mime}
-	}
-
-	return b, nil
+	return getSnap(c.Client, url)
 }
