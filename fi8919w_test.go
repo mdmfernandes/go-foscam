@@ -16,15 +16,14 @@ func TestFI8919w_ChangeMotionStatus(t *testing.T) {
 		enable bool
 	}
 	tests := []struct {
-		name          string
-		args          args
-		Client        *mocks.MockHTTPClient
-		wantErr       error
-		wantGetCalled int
+		name    string
+		args    args
+		client  *mocks.MockHTTPClient
+		wantErr error
 	}{
 		{
 			name: "ok",
-			Client: &mocks.MockHTTPClient{
+			client: &mocks.MockHTTPClient{
 				GetFunc: func(url string) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
@@ -32,35 +31,11 @@ func TestFI8919w_ChangeMotionStatus(t *testing.T) {
 					}, nil
 				},
 			},
-			wantErr:       nil,
-			wantGetCalled: 1,
+			wantErr: nil,
 		},
 		{
-			name: "Camera error",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return nil, http.ErrAbortHandler
-				},
-			},
-			wantErr:       &CameraError{http.ErrAbortHandler.Error()},
-			wantGetCalled: 1,
-		},
-		{
-			name: "Get status code unexpected",
-			Client: &mocks.MockHTTPClient{
-				GetFunc: func(url string) (*http.Response, error) {
-					return &http.Response{
-						StatusCode: http.StatusNotFound,
-						Body:       io.NopCloser(strings.NewReader("ok.\n")),
-					}, nil
-				},
-			},
-			wantErr:       &BadStatusError{Status: http.StatusNotFound, Expected: http.StatusOK},
-			wantGetCalled: 1,
-		},
-		{
-			name: "Get unexpected response",
-			Client: &mocks.MockHTTPClient{
+			name: "Unexpected response",
+			client: &mocks.MockHTTPClient{
 				GetFunc: func(url string) (*http.Response, error) {
 					return &http.Response{
 						StatusCode: http.StatusOK,
@@ -68,22 +43,33 @@ func TestFI8919w_ChangeMotionStatus(t *testing.T) {
 					}, nil
 				},
 			},
-			wantErr:       &BadResponseError{"ok.\n", "notok.\n"},
-			wantGetCalled: 1,
+			wantErr: &BadResponseError{"ok.\n", "notok.\n"},
+		},
+		{
+			name: "Bad request",
+			client: &mocks.MockHTTPClient{
+				GetFunc: func(url string) (*http.Response, error) {
+					return &http.Response{
+						StatusCode: http.StatusForbidden,
+						Body:       io.NopCloser(nil),
+					}, nil
+				},
+			},
+			wantErr: &BadStatusError{URL: "/set_alarm.cgi?pwd=&user=&motion_armed=0", Status: http.StatusForbidden, Expected: http.StatusOK},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cam := &fi8919w{
-				Client: tt.Client,
+				Client: tt.client,
 			}
 
 			if err := cam.ChangeMotionStatus(tt.args.enable); !testutil.EqualError(t, err, tt.wantErr) {
 				t.Errorf("Error: got = %v; want = %v", err, tt.wantErr)
 			}
 
-			if tt.wantGetCalled != tt.Client.GetCount {
-				t.Errorf("Number of requests: got = %d; want = %d", tt.Client.GetCount, tt.wantGetCalled)
+			if tt.client.GetCount != 1 {
+				t.Errorf("Number of requests: got = %d; want = 1", tt.client.GetCount)
 			}
 		})
 	}

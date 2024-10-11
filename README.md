@@ -12,8 +12,11 @@ Go Library for Foscam IP Cameras
 
 ## Supported Functionalities
 
-- ChangeMotionStatus
-- GetMotionStatus (WIP)
+| Functionality      | Required privilege | Info                                    |
+| ------------------ | ------------------ | --------------------------------------- |
+| ChangeMotionStatus | admin              | enable/disable the camera motion status |
+| SnapPicture        | visitor            | get a snapshot from the camera          |
+| GetMotionStatus    |                    | WIP                                     |
 
 ## Run the example
 
@@ -26,7 +29,7 @@ export FOSCAM_USER=<user>
 export FOSCAM_PASSWORD=<password>
 EOF
 
-$ make run/example
+$ make example/motion
 ```
 
 ## To Do

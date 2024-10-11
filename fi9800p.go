@@ -3,8 +3,6 @@ package foscam
 import (
 	"encoding/xml"
 	"fmt"
-	"io"
-	"net/http"
 
 	"github.com/google/go-querystring/query"
 )
@@ -13,8 +11,12 @@ import (
 // We don't need to export this struct since we are using an interface factory.
 // see the file foscam.go for more details
 type fi9800p struct {
-	Client HTTPClient
-	Config
+	Client HTTPClient `url:"-"`
+	// The go-querystring values may change from camera to camera, so we can't
+	// use Config (from foscam.go) directly here.
+	URL      string `url:"-"`
+	User     string `url:"usr"`
+	Password string `url:"pwd"`
 }
 
 type fi9800pMotion struct {
@@ -57,17 +59,10 @@ func (c *fi9800p) updateMotionDetect(mc fi9800pMotion) error {
 	qm, _ := query.Values(mc) // Motion Config
 	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=setMotionDetectConfig&%s&%s", c.URL, qm.Encode(), qc.Encode())
 
-	res, err := c.Client.Get(url)
+	b, err := getRequest(c.Client, url)
 	if err != nil {
-		return &CameraError{err.Error()}
+		return err
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
-	}
-
-	b, _ := io.ReadAll(res.Body)
 
 	var mr fi9800pResponse
 
@@ -90,17 +85,11 @@ func (c *fi9800p) GetMotionDetect() (fi9800pMotion, error) {
 	q, _ := query.Values(c)
 	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=getMotionDetectConfig&%s", c.URL, q.Encode())
 
-	res, err := c.Client.Get(url)
+	b, err := getRequest(c.Client, url)
 	if err != nil {
-		return mc, &CameraError{err.Error()}
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return mc, &BadStatusError{URL: c.URL, Status: res.StatusCode, Expected: http.StatusOK}
+		return mc, err
 	}
 
-	b, _ := io.ReadAll(res.Body)
 	if err = xml.Unmarshal(b, &mc); err != nil {
 		return mc, err
 	}
@@ -122,4 +111,13 @@ func (c *fi9800p) ChangeMotionStatus(enable bool) error {
 	mc.IsEnable = b2u(enable)
 
 	return c.updateMotionDetect(mc)
+}
+
+// SnapPicture takes a snapshot and returns the picture in a byte slice.
+func (c *fi9800p) SnapPicture() ([]byte, error) {
+	// Construct the URL
+	q, _ := query.Values(c)
+	url := fmt.Sprintf("%s/cgi-bin/CGIProxy.fcgi?cmd=snapPicture2&%s", c.URL, q.Encode())
+
+	return getSnap(c.Client, url)
 }
